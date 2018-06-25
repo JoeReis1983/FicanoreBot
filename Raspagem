@@ -1,0 +1,249 @@
+package pack;
+
+import java.awt.Desktop;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+
+public class Raspagem {
+
+	public static String url = "";
+	 ArrayList<String> tituloNoticia = new ArrayList<String>();
+	 boolean selecionouTime = false;
+	
+	public ArrayList<String> getTituloNoticia() {
+		return tituloNoticia;
+	}
+
+	public void setTituloNoticia(ArrayList<String> tituloNoticia) {
+		this.tituloNoticia = tituloNoticia;
+	}
+
+	public boolean isSelecionouTime() {
+		return selecionouTime;
+	}
+
+	public void setSelecionouTime(boolean selecionouTime) {
+		this.selecionouTime = selecionouTime;
+	}
+
+	String selecionandoURLTime (String time) {
+		
+		String url = "";
+		
+		switch (time) {
+		case "America-MG":{
+			System.out.println("America ok");
+			setSelecionouTime(true);
+			return "http://globoesporte.globo.com/futebol/times/america-mg/";
+		}
+		case "Atletico-MG":{
+			System.out.println("Galo ok");
+			setSelecionouTime(true);
+			return "http://globoesporte.globo.com/futebol/times/atletico-mg/";
+		}
+		case "Atletico-PR":{
+			System.out.println("Furacão ok");
+			setSelecionouTime(true);
+			return "http://globoesporte.globo.com/pr/futebol/times/atletico-pr/";
+		}
+		case "Bahia":{
+			System.out.println("Bahia ok");
+			setSelecionouTime(true);
+			return "http://globoesporte.globo.com/ba/futebol/times/bahia/";
+		}
+		case "Botafogo":{
+			System.out.println("Fogão ok");
+			setSelecionouTime(true);
+			return"http://globoesporte.globo.com/futebol/times/botafogo/";
+		}
+		case "Ceara":{
+			System.out.println("Ceara ok");
+			setSelecionouTime(true);
+			return "http://globoesporte.globo.com/ce/futebol/times/ceara/";
+		}
+		case "Chapecoense":{
+			System.out.println("CHAPE ok");
+			setSelecionouTime(true);
+			return "http://globoesporte.globo.com/sc/futebol/times/chapecoense/";
+		}
+		case "Corinthians":{
+			System.out.println("Gamba ok");
+			setSelecionouTime(true);
+			return "http://globoesporte.globo.com/futebol/times/corinthians/";
+		}
+		case "Cruzeiro":  {
+			System.out.println("Cruzeiro ok");
+			setSelecionouTime(true);
+			return "http://globoesporte.globo.com/futebol/times/cruzeiro/";
+		}
+		case "Flamengo":  {
+			System.out.println("Flamengo ok");
+			setSelecionouTime(true);
+			return "http://globoesporte.globo.com/futebol/times/flamengo/";
+		}
+		case "Fluminense": {
+			System.out.println("Flu ok");
+			setSelecionouTime(true);
+			return "http://globoesporte.globo.com/futebol/times/fluminense/";
+		}
+		case "Grêmio":{
+			System.out.println("Gremio ok");
+			setSelecionouTime(true);
+			return "http://globoesporte.globo.com/rs/futebol/times/gremio/";
+		}
+		case "Internacional":  {
+			System.out.println("INTER ok");
+			setSelecionouTime(true);
+			return "http://globoesporte.globo.com/rs/futebol/times/internacional/";
+		}
+		case "Palmeiras": {
+			System.out.println("Porco ok");
+			setSelecionouTime(true);
+			return "http://globoesporte.globo.com/futebol/times/palmeiras/";
+		}
+		case "Paraná": {
+			System.out.println("Parana ok");
+			setSelecionouTime(true);
+			return "http://globoesporte.globo.com/pr/futebol/times/parana-clube/";
+		}
+		case "Santos":{
+			System.out.println("Santos ok");
+			setSelecionouTime(true);
+			return "http://globoesporte.globo.com/sp/santos-e-regiao/futebol/times/santos/";
+		}
+		case "São Paulo":{
+			System.out.println("Tricolor ok");
+			setSelecionouTime(true);
+			return "http://globoesporte.globo.com/futebol/times/sao-paulo/";
+		}
+		case "Sport":{
+			System.out.println("Sport ok");
+			setSelecionouTime(true);
+			return "http://globoesporte.globo.com/pe/futebol/times/sport/";
+		}
+		case "Vasco":{
+			System.out.println("Vasco ok");
+			setSelecionouTime(true);
+			return "http://globoesporte.globo.com/futebol/times/vasco/";
+		}
+		case "Vitória":  {
+			System.out.println("Vitória ok");
+			setSelecionouTime(true);
+			return "http://globoesporte.globo.com/ba/futebol/times/vitoria/";
+		}
+
+		default:
+			System.out.println("Opção Inválida!");
+			setSelecionouTime(false);
+			return "Opção Inválida!";
+		}
+	}
+
+	ArrayList<String> raspaTituloELink (String URL, ArrayList<String> arrayTituloELink) {
+
+		ArrayList<String> coletando = new ArrayList<String>();
+		try {
+			Document doc = Jsoup.connect(URL).get();
+			
+			for(int i=0; i<5; i++) {
+				// Raspa Título
+				Element titulo = doc.getElementById("feed-placeholder")
+						.getElementsByClass("bastian-feed-item").get(i)
+						.getElementsByClass("_s").first();
+				coletando.add(titulo.text());
+				
+				// Raspa Link
+				Element link = doc.getElementById("feed-placeholder")
+						.getElementsByClass("bastian-feed-item").get(i)
+						.select("a[href]").first();
+				coletando.add(link.attr("abs:href"));
+			}
+
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		arrayTituloELink = coletando;
+		return arrayTituloELink;
+	}
+	
+	String printNoticia (ArrayList<String> arrayTituloELink, int numNoticia) {
+		return "Noticia "+(numNoticia+1)+" - "+ arrayTituloELink.get(numNoticia*2);
+	}
+
+	String siteResumo (String URL) {
+		
+		return "https://smmry.com/" + URL + "#&SM_LENGTH=7";
+	}
+	
+	void abrirSiteResumo (String URL) {
+		Desktop d = Desktop.getDesktop();
+
+		try {
+
+			d.browse(new URI(URL));
+			try {
+				new Thread().sleep(12000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			Runtime.getRuntime().exec("taskkill /f /im chrome.exe");
+
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	String gerarResumo (String URL) {
+
+		String resumo, resumoAjeitado = null;
+
+		Document doc;
+
+		try {
+			doc = Jsoup.connect(URL).get();
+
+			// Raspa o Titulo da Noticia
+			Element novoTeste = doc.getElementById("sm_secondary_inner_interface").
+					getElementById("sm_title_container");
+			
+			resumoAjeitado = " " + novoTeste.text() + "\n\n";
+
+			// Raspa o Resumo da Noticia
+			novoTeste = doc.getElementById("sm_secondary_inner_interface").
+					getElementById("sm_container_output");
+			resumo = novoTeste.text();
+
+
+			char[] resumoChar = resumo.toCharArray();
+			char[] ponto = ".".toCharArray();
+			for(int i=0; i<resumo.length(); i++) {
+				if(i == 0) {
+					resumoAjeitado += " " + resumoChar[0];
+				}
+				else if(resumoChar[i] == ponto[0]) {
+					resumoAjeitado += resumoChar[i] + "\n";
+				}
+				else {
+					resumoAjeitado += resumoChar[i];
+				}
+			}
+
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return resumoAjeitado;
+	}
+}
