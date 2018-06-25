@@ -1,0 +1,116 @@
+# FicanoreBot
+Chat bot do Telegram para noticias sobre os times de futebol da primeira divisão do Campeonato Brasileiro.
+package pack;
+
+import java.io.IOException;
+import java.util.List;
+import com.pengrad.telegrambot.TelegramBot;
+import com.pengrad.telegrambot.TelegramBotAdapter;
+import com.pengrad.telegrambot.model.Update;
+import com.pengrad.telegrambot.model.request.ChatAction;
+import com.pengrad.telegrambot.model.request.ReplyKeyboardMarkup;
+import com.pengrad.telegrambot.request.GetUpdates;
+import com.pengrad.telegrambot.request.SendChatAction;
+import com.pengrad.telegrambot.request.SendMessage;
+import com.pengrad.telegrambot.response.BaseResponse;
+import com.pengrad.telegrambot.response.GetUpdatesResponse;
+import com.pengrad.telegrambot.response.SendResponse;
+
+
+
+public class FicanoreBot {
+	public static String url = "https://globoesporte.globo.com/futebol/brasileirao-serie-a/";
+
+	@SuppressWarnings("null")
+	public static void main(String[] args) throws IOException {
+
+		//Criação do objeto bot com as informações de acesso
+		@SuppressWarnings("deprecation")
+		TelegramBot bot = TelegramBotAdapter.build("TOKEN ID do Bot Telegram");
+
+
+		//objeto responsável por receber as mensagens
+		GetUpdatesResponse updatesResponse;
+		//objeto responsável por gerenciar o envio de respostas
+		SendResponse sendResponse;
+		//objeto responsável por gerenciar o envio de ações do chat
+		BaseResponse baseResponse;
+
+		//controle de off-set, isto é, a partir deste ID será lido as mensagens pendentes na fila
+		int m=0;
+
+		Raspagem novo = new Raspagem();
+
+		//loop infinito pode ser alterado por algum timer de intervalo curto
+		while (true){
+
+			//executa comando no Telegram para obter as mensagens pendentes a partir de um off-set (limite inicial)
+			updatesResponse =  bot.execute(new GetUpdates().limit(100).offset(m));
+
+			//lista de mensagens
+			List<Update> updates = updatesResponse.updates();
+
+			//análise de cada ação da mensagem
+			for (Update update : updates) {
+
+				//atualização do off-set
+				m = update.updateId()+1;
+				
+				//Impressão da mensagem do usuario
+				System.out.println("Recebendo mensagem:"+ update.message().text());
+
+				char[] letra = update.message().text().toCharArray();
+				boolean digito = false;
+				for(int i=0; i<letra.length; i++) {
+					if(Character.isLetter(letra[i])) {
+						digito = false;
+						break;
+					}
+					else {
+						digito = true;
+					}
+				}
+				if(update.message().text().equals("/start") || update.message().text().equals("Voltar") || !novo.isSelecionouTime()) {
+					//envio de "Escrevendo" antes de enviar a resposta
+					baseResponse = bot.execute(new SendChatAction(update.message().chat().id(), ChatAction.typing.name()));
+					//envio da mensagem de resposta
+					sendResponse = bot.execute(new SendMessage(update.message().chat().id(),"Selecionar um Time").
+							replyMarkup(new ReplyKeyboardMarkup(
+									new String[] { "America-MG","Atletico-MG", "Atletico-PR","Bahia"},
+									new String[] { "Botafogo","Ceara","Chapecoense","Corinthians"},
+									new String[] { "Cruzeiro","Flamengo","Fluminense","Grêmio"},
+									new String[] { "Internacional","Palmeiras","Paraná","Santos"},
+									new String[] { "São Paulo","Sport","Vasco","Vitória"}										
+									)));
+					novo.setSelecionouTime(true);
+				}
+				else if(digito && Integer.parseInt(update.message().text()) > 0 && Integer.parseInt(update.message().text()) < 6) {
+					novo.abrirSiteResumo(novo.siteResumo(novo.tituloNoticia.get((2*Integer.parseInt(update.message().text()))-1)));
+					//envio de "Escrevendo" antes de enviar a resposta
+					baseResponse = bot.execute(new SendChatAction(update.message().chat().id(), ChatAction.typing.name()));
+					sendResponse = bot.execute(new SendMessage(update.message().chat().id(), 
+							novo.gerarResumo(novo.siteResumo(novo.tituloNoticia.get((2*Integer.parseInt(update.message().text()))-1)))));
+					sendResponse = bot.execute(new SendMessage(update.message().chat().id(),
+							"Notícia completa em: \n" + novo.getTituloNoticia().get((2*Integer.parseInt(update.message().text()))-1)));
+				}
+				else {
+					//envio de "Escrevendo" antes de enviar a resposta
+					baseResponse = bot.execute(new SendChatAction(update.message().chat().id(), ChatAction.typing.name()));
+					sendResponse = bot.execute(new SendMessage(update.message().chat().id(),
+							"Ultimas Notícias do " + update.message().text()));
+					novo.tituloNoticia = novo.raspaTituloELink(novo.selecionandoURLTime(update.message().text()), novo.tituloNoticia);
+					for(int i=0; i<5; i++) {
+						String noticia = novo.printNoticia(novo.tituloNoticia, i);
+						sendResponse = bot.execute(new SendMessage(update.message().chat().id(), noticia));
+					}
+					sendResponse = bot.execute(new SendMessage(update.message().chat()
+							.id(),"Escolha uma das noticias:").replyMarkup(new ReplyKeyboardMarkup(
+									new String[] {"1","2","3"},
+									new String[] {"4","5",},
+									new String[] {"Voltar"}
+									)));
+				}
+			}
+		}
+	}
+}
